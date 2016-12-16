@@ -1,0 +1,290 @@
+<dom-module id="app-frame">
+    <template>
+        <style>
+            :host , #fullbleed-container {
+                display: block;
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                box-sizing: border-box;
+                padding: 0px;
+                margin: 0px;
+                background-color: #aaa;
+                
+                --button-theme: {
+                    color: #F1F8EB;
+                    background-color: #4A6F5F;
+                }
+            }
+
+            #title-bar {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 27px;
+                background-color: #5E9990;
+                padding-left: 8px;
+                box-sizing: border-box;
+            }
+
+            .title {
+                position: relative;
+                top: 3px;
+                display: inline-block;
+                color: #5E195F;
+            }
+
+            .dragregion {
+                position: absolute;
+                width: calc(100% - 40px);
+                height: 27px;
+                left: 0;
+                top: 0;
+                background-color: transparent;
+                -webkit-app-region: drag;
+            }
+
+            .closebutton {
+                position: absolute;
+                width: 36px;
+                height: 25px;
+                right: 2px;
+                top: 0;
+                background-color: #5E9990;
+                color: #CFD0CE;
+                overflow:none;
+                transition: background-color .25s, color .25s;
+            }
+
+            .closebutton:hover {
+                background-color: #B5453F;
+                color: white;
+            }
+
+            #content-area {
+                position: absolute;
+                left: 0;
+                top: 27px;
+                width: 100%;
+                height: calc(100% - 27px);
+                background-color: #F1F8EB;
+                overflow: none;
+                color: #4C5954;
+                transform: translate(0,0);
+            }
+
+            #contentShade {
+                position: absolute;
+                left: 0;
+                top: 27px;
+                width: 100%;
+                height: calc(100% - 27px);
+                background-color: #F1F8EB;
+                overflow: none;
+                color: #4C5954;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                transition: height 3s, opacity 1s;
+                transition-timing-function: ease;
+            }
+
+            #contentShade.hidden {
+                height: 0;
+                opacity: 0;
+            }
+
+            #closeicon {
+                position: absolute;
+                height: 25px;
+                width: 25px;
+                left: 6px;
+                top: 0;
+            }
+
+            neon-animated-pages {
+                width: 100%;
+                height: 100%;
+                overflow: hidden;
+            }
+
+            neon-animatable {
+                @apply(--layout-horizontal);
+            }
+        </style>
+
+        <div id="fullbleed-container">
+            <div id="title-bar">
+                <span class="title">{{title}}</span>
+                <div class="dragregion"></div>
+                <div class="closebutton" onclick="window.appExit()">
+                    <iron-icon id="closeicon" icon="icons:close"></iron-icon>
+                </div>
+            </div>
+            <div id="content-area">
+                <neon-animated-pages id="pages" selected="[[selectedPage]]" entry-animation="slide-from-right-animation" exit-animation="slide-left-animation">
+                    <neon-animatable><database-input-page shared-data="{{sharedData}}"></database-input-page></neon-animatable>
+                    <neon-animatable><consent-form shared-data="{{sharedData}}"></consent-form></neon-animatable>
+                    <neon-animatable><demographics-survey shared-data="{{sharedData}}"></demographics-survey></neon-animatable>
+                    <neon-animatable><pre-test-page></pre-test-page></neon-animatable>
+                    <template is="dom-repeat" items="{{_createdConfigs}}">
+                        <neon-animatable>
+                            <test-question
+                                bug-title="[[item.bugTitle]]"
+                                bug-config="[[item.bugConfig]]"
+                                flipped="[[item.flipped]]"
+                                shared-data="{{sharedData}}"
+                                bug-number=[[_addOne(index)]]>
+                            </test-question>
+                        </neon-animatable>
+                    </template>
+                    <neon-animatable><thank-page shared-data="{{sharedData}}"></thank-page></neon-animatable>
+                </neon-animated-pages>
+                <div id="contentShade"><div>App is loading.</div></div>
+            </div>
+        </div>
+    </template>
+    <script>
+        Polymer({
+            is: 'app-frame',
+            properties: {
+                title: {
+                    type: String,
+                    value: "[No Title?]"
+                },
+                selectedPage: {
+                    type: Number,
+                    value: 0,
+                    notify: true
+                },
+                sharedData: {
+                    type: Object,
+                    value: {}
+                }
+            },
+            ready: function() {
+                window.appMaximize();
+                this.sharedData = {
+                    db: {},
+                    results: {}
+                };
+                
+                window.setTimeout((function (){
+                    //This is from the MAIN PROCESS, set at launch time as a global.
+                    //It is captured under the name scienceTasks in index.html so
+                    //we can use it here. Because this object is from the MAIN PROCESS,
+                    //it is guaranteed to have passed the integrity checker already.
+                    let taskObj = window.scienceTasks;
+
+                    //Shuffle the "decks" of configs and tasks
+                    let tmpA = this._SecureShuffleArray(taskObj.taskList);
+                    let tmpB = this._SecureShuffleArray(taskObj.configSet);
+                    let tmpC = this._MakeSecureCoinTossArray(taskObj.configSet.length);
+                    //all three of these resulting arrays should be of the same length;
+                    //this is a property that (should) be guaranteed
+
+                    //an array, starting with the description of the control task.
+                    let tmpD = [{
+                        bugTitle: taskObj.control.bugTitle,
+                        bugConfig: taskObj.control.config,
+                        flipped: (taskObj.control.flipped === "true")
+                    }];
+
+                    //Riffle through the decks and make coherent configs.
+                    //Add them all to tmpD.
+                    for(let i = 0; i < tmpA.length; i++) {
+                        tmpD.push({
+                            bugTitle: tmpA[i],
+                            bugConfig: tmpB[i],
+                            flipped: tmpC[i]
+                        })
+                    }
+
+                    //Force Polymer to notice we are editing _createdConfigs
+                    this._createdConfigs = [];
+                    //Publish the full config list in one giant lump.
+                    //This cascades into the DOM, and now we should have
+                    //a full set of <test-question> elements
+                    this._createdConfigs = tmpD;
+
+                    window.setTimeout((function() {
+                        this.pages = Polymer.dom(this.root).querySelectorAll("neon-animatable");
+                        for(var i = 0; i < this.pages.length; i++) {
+                            this.pages[i].children[0].addEventListener('advance', this._onAdvance.bind(this));
+                        }
+                        this.toggleClass("hidden", true, this.$.contentShade);
+                    }).bind(this), 2000);
+                }).bind(this), 500);
+            },
+            _onAdvance: function(e, detail) {
+                if(this.selectedPage < this.pages.length - 1) {
+                    this.selectedPage++;
+                    this.fire('activate', {}, {node: this.pages[this.selectedPage].children[0]});
+                }
+            },
+            _SecureShuffleArray: function(array) {
+                //This method uses the window.crypto module to shuffle an array.
+                //The use of the window.crypto module ensures that the randomness
+                //would be suitable enough for cryptography; so we should assume
+                //that if the random numbers are good for crypto they are random
+                //enough for science.
+                //
+                //Note: because we make a Uint8Array, the array length must be less
+                //than 2^8 elements long for this to work correctly. I doubt this
+                //will be a problem for MY purposes,
+                //but keep it in mind if you reuse this code.
+                //
+                //incidentally, since we are using Modulo in this algorithm for shuffling,
+                //there may be a possible bias towards one end of the list or the other.
+                //We don't care about this bias *particularly* much? but it would be
+                //very hard to write this function differently.
+
+                //copy out the original array contents into a new array we control.
+                let result = [];
+                for(let i = 0; i < array.length; i++) {
+                    result.push(array[i])
+                }
+
+                //generate 32x more potential array swaps than there are items
+                //in the array
+                let shuffleTargetsA = new Uint8Array(array.length * 32);
+                window.crypto.getRandomValues(shuffleTargetsA);
+
+                let shuffleTargetsB = new Uint8Array(array.length * 32);
+                window.crypto.getRandomValues(shuffleTargetsB);
+
+                //Swap Party!
+                for(let i = 0; i < shuffleTargetsA.length; i++) {
+                    let A = result[shuffleTargetsA[i] % result.length];
+                    let B = result[shuffleTargetsB[i] % result.length];
+                    result[shuffleTargetsA[i] % result.length] = B;
+                    result[shuffleTargetsB[i] % result.length] = A;
+                }
+                
+                //return the result of doing all this.
+                return result;
+            },
+            _MakeSecureCoinTossArray: function(arrayLength) {
+                //This method uses the window.crypto module to simulate a lot of coin tosses.
+                //The use of the window.crypto module ensures that the randomness
+                //would be suitable enough for cryptography; so we should assume
+                //that if the random numbers are good for crypto they are random
+                //enough for science.
+
+                let cryptoTargets = new Uint8Array(arrayLength);
+                window.crypto.getRandomValues(cryptoTargets);
+                let result = [];
+                for(let i = 0; i < arrayLength; i++) {
+                    result.push(((cryptoTargets[i] % 2) === 0));
+                }
+                return result;
+            },
+            _addOne: function(x) {
+                return x + 1;
+            }
+        })
+    </script>
+</dom-module>

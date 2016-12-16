@@ -1,0 +1,14 @@
+{
+  "name": "skriptiv",
+  "version": "0.1.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "dependencies": {
+    "bower": "^1.7.9",
+    "cradle": "^0.7.1",
+    "electron": "^1.4.1"
+  }
+}

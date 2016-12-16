@@ -1,0 +1,93 @@
+<dom-module id="accurate-timer">
+    <script>
+        Polymer({
+            is: "accurate-timer",
+            properties: {
+                timerDuration: {
+                    type: Number,
+                    value: 0,
+                },
+                timeNow: {
+                    type: Number,
+                    value: 0,
+                    readOnly: true,
+                    notify: true
+                },
+                isRunning: {
+                    type: Boolean,
+                    value: false,
+                    readOnly: true,
+                    notify: true
+                },
+                percentageComplete: {
+                    type: Number,
+                    computed: 'computePercentage(timeNow, timerDuration)',
+                    notify: true
+                }
+            },
+            start: function() {
+                //Use integer milliseconds only: We don't want higher precision
+                //as the computer might be lying/inconsistent about higher precision time.
+                //
+                //See https://developer.mozilla.org/en-US/docs/Web/API/DOMHighResTimeStamp
+                this._timeStarted = Math.ceil(window.performance.now())
+                this._setTimeNow(0)
+
+                if(!this.isRunning) {
+                    window.requestAnimationFrame(this._update.bind(this))
+                    this._setIsRunning(true)
+                } else {
+                    //don't make multiple requestAnimationFrame calls
+                    console.warn("Timer was started before it was finished! The timer has been **RESET**"
+                               + "and the first time-out **MIGHT NOT** ever happen! Don't call start() twice!")
+                }
+            },
+            _update: function(z) {
+                if(!this.isRunning) {
+                    //quit if we're not supposed to be running the timer
+                    return;
+                }
+
+                if(!this.timerDuration || !this._timeStarted) {
+                    console.warn("Something went wrong with the timer! It was cancelled as a result.")
+                    this._setIsRunning(false)
+                    return;
+                }
+
+                //Use integer milliseconds only: We don't want higher precision
+                //as the computer might be lying/inconsistent about higher precision time.
+                //
+                //See https://developer.mozilla.org/en-US/docs/Web/API/DOMHighResTimeStamp
+                var timestampNow = Math.ceil(z)
+
+                //compute the number of milliseconds that has passed since the timer was
+                //started with start()
+                var now = timestampNow - this._timeStarted
+
+                //if we are done...
+                if(now >= this.timerDuration) {
+                    //results in exactly 100% 
+                    this._setTimeNow(this.timerDuration)
+                    //fire clock event
+                    this.fire('timeout')
+                    this._setIsRunning(false)
+                    return;
+                }
+
+                //do every 3rd frame
+                if(now % 3 == 0) {
+                    this._setTimeNow(now)
+                }
+
+                window.requestAnimationFrame(this._update.bind(this))
+            },
+            computePercentage: function(timeNow, timerDuration) {
+                if(!(!timerDuration) && timerDuration > 0) {
+                    return Math.ceil((timeNow/timerDuration)*10000)/100;
+                }
+
+                return 0;
+            }
+        })
+    </script>
+</dom-module>

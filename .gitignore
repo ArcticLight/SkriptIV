@@ -1,0 +1,7 @@
+.*
+!.gitignore
+*~
+*.log
+*.bak
+**/node_modules/
+**/bower_components/

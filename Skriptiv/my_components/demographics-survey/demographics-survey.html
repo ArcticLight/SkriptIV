@@ -1,0 +1,120 @@
+<dom-module id="demographics-survey">
+    <template>
+        <style>
+            :host {
+                display: flex;
+                width: 100%;
+                height: 100%;
+
+                justify-content: center;
+                align-items: stretch;
+            }
+
+            #container {
+                display: flex;
+                width: 100%;
+                max-width: 66em;
+                height: 100%;
+                padding-left: 8em;
+                padding-right: 8em;
+                box-sizing: border-box;
+                flex-direction: column;
+                justify-content: center;
+
+                overflow: auto;
+                transform: translate(0,0);
+            }
+
+            #next-holder {
+                width: 100%;
+                position: relative;
+                top: 1em;
+            }
+
+            #next-holder paper-button {
+                position: absolute;
+                right: 6em;
+            }
+
+            paper-button {
+                @apply(--button-theme);
+            }
+
+            p {
+                margin: 0;
+                text-align: justify;
+            }
+
+            span {
+                position: relative;
+                top: 1px;
+            }
+        </style>
+        
+        <div id="container">
+            <multi-radio-question num-items="5" selected="{{q1Answer}}">
+                <p>About how many years of experience do you have programming computers in <i>any</i> programming language?<br>(If more than 5, answer 5)</p>
+            </multi-radio-question>
+            <error-display-box centered id="q1error"></error-display-box>
+            <multi-radio-question num-items="5" selected="{{q2Answer}}">
+                <p>About how many years of experience do you have programming in the <i>Java</i> programming language?<br>(If more than 5, answer 5)</p>
+            </multi-radio-question>
+            <error-display-box centered id="q2error"></error-display-box>
+            <multi-radio-question num-items="0" menu-items='["Beginner","Intermediate","Advanced"]' selected="{{q3Answer}}">
+                <p>Would you describe your own experience with the Java programming language to be at a beginner, intermediate, or advanced level?</p>
+            </multi-radio-question>
+            <error-display-box centered id="q3error"></error-display-box>
+            <multi-radio-question num-items="4" selected="{{q4Answer}}">
+                <p>On a scale of 1 to 4, indicate how much do you agree with the following statement: When I must read code, I prefer to read code which adheres to a consistent style.</p>
+                <span left-label>Strongly Disagree</span>
+                <span right-label>Strongly Agree</span>
+            </multi-radio-question>
+            <error-display-box centered id="q4error"></error-display-box>
+            <multi-radio-question num-items="4" selected="{{q5Answer}}">
+                <p>On a scale of 1 to 4, indicate how much you agree with the following statement: It does not matter to me whether code I read is well-formatted or rather disorganized; I can still read it anyway.</p>
+                <span left-label>Strongly Disagree</span>
+                <span right-label>Strongly Agree</span>
+            </multi-radio-question>
+            <error-display-box centered id="q5error"></error-display-box>
+            <div id="next-holder"><paper-button raised on-tap="_validateForm">Next</paper-button></div>
+        </div>
+
+    </template>
+    <script>
+        Polymer({
+            is: 'demographics-survey',
+            properties: {
+                sharedData: {
+                    type: Object,
+                    notify: true,
+                    value: {}
+                }
+            },
+            _validateForm: function() {
+                var error = false;
+                for(var i = 1; i <= 5; i++) {
+                    if(!this["q" + i + "Answer"]) {
+                        error = true;
+                        this.$["q" + i + "error"].setText('This question is required.');
+                    } else {
+                        this.$["q" + i + "error"].setText('');
+                    }
+                }
+
+                if(!error) {
+                    this.sharedData.results.demographicsResults = {
+                        q1: this.q1Answer,
+                        q2: this.q2Answer,
+                        q3: this.q3Answer,
+                        q4: this.q4Answer,
+                        q5: this.q5Answer
+                    };
+
+                    console.log(this.sharedData);
+
+                    this.fire('advance');
+                }
+            }
+        })
+    </script>
+</dom-module>

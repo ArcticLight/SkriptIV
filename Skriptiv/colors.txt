@@ -1,0 +1,7 @@
+Colors
+
+            Red                     Purple                  Green                   Accent                  Base
+
+Lighter     #C5716C                 #89578A                 #8BA399                 #93F0E1                 #FCFDFB
+Primary     #B03D35                 #5E195F                 #4A6F5F                 #39E5C8                 #F1F8EB
+Darker      #B5453F                 #583858                 #4C5954                 #5E9990                 #CFD0CE

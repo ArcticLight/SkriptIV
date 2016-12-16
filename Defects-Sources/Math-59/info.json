@@ -1,0 +1,9 @@
+{
+    "bugTitle": "Math-59",
+    "bugLocation": "float max(final float, final float)",
+    "bugDescription": "<code>FastMath.max(50.0f, -50.0f)</code> results in -50 instead of 50",
+    "fileName": "FastMath",
+    "correctResponses": {
+        "C": [3013]
+    }
+}

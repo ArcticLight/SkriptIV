@@ -1,0 +1,11 @@
+{
+    "bugTitle": "Chart-5",
+    "bugLocation": "XYDataItem addOrUpdate(Number, Number)",
+    "bugDescription": "With the following sequence of events, an <code>IndexOutOfBoundsException</code> is thrown in the <code>XYSeries</code> code:<br/><br/><code style=\"white-space:pre\">    //Setup:\n    XYSeries series = new XYSeries(\"Series\", true, true);\n    series.addOrUpdate(1.0, 1.0); // This works fine\n    \n    series.addOrUpdate(1.0, 2.0); //This triggers the bug</code>",
+    "fileName": "XYSeries",
+    "correctResponses": {
+        "A": [570, 571],
+        "B": [595, 597],
+        "C": [548, 549]
+    }
+}

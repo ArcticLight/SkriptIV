@@ -1,0 +1,11 @@
+{
+    "bugTitle": "Time-15",
+    "bugLocation": "long safeMultiply(long, int)",
+    "bugDescription": "Calling <code>safeMultiply(Long.MIN_VALUE, -1)</code> does not throw an <code>ArithmeticException</code> as it should.",
+    "fileName": "FieldUtils",
+    "correctResponses": {
+        "A": [148],
+        "B": [152],
+        "C": [141]
+    }
+}

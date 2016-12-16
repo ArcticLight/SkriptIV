@@ -1,0 +1,86 @@
+<dom-module id="consent-form">
+    <template>
+        <style>
+            :host {
+                display: flex;
+                width: 100%;
+                height: 100%;
+                justify-content: center;
+                align-items: center;
+                flex-direction: column;
+            }
+
+            #doublecontain {
+                display: flex;
+                width: 100%;
+                max-width: 66em;
+                height: 100%;
+                justify-content: center;
+                align-items: center;
+                flex-direction: column;
+            }
+
+            #consenttext {
+                width: 100%;
+                max-height: calc(100% - 5em);
+                overflow: auto;
+                box-sizing: border-box;
+                margin-bottom: 1em;
+                padding-left: 4em;
+                padding-right: 4em;
+            }
+
+            paper-button {
+                @apply(--button-theme);
+                margin-right: 4em;
+                visibility: hidden;
+            }
+
+            #agreebox {
+                margin-right: 2em;
+            }
+        </style>
+        <div id="doublecontain">
+            <error-display-box centered id="error"></error-display-box>
+            <div id="consenttext"></div>
+            <div style="display:flex;justify-content:flex-end;align-items:baseline;width:calc(100% - 100px);padding-bottom:1em">
+                <div style="height:1em"><paper-checkbox no-ripple checked="{{checked}}" id="agreebox">I Agree</paper-checkbox></div>
+                <paper-button id="nextbutton" disabled="{{!checked}}" raised on-tap="_doConsent">next</paper-button>
+            </div>
+        </div>
+    </template>
+    <script>
+        Polymer({
+            is: 'consent-form',
+            properties: {
+                sharedData: {
+                    type: Object,
+                    value: {},
+                    notify: true
+                }
+            },
+            listeners: {
+                'activate': 'activatePage'
+            },
+            activatePage: function() {
+                this.sharedData.db.get('consent', function(err, doc) {
+                    if(err) {
+                        this.$.error.setText("Something went wrong: " + String(err));
+                    } else {
+                        this.$.consenttext.innerHTML = doc.formHTML;
+                        this.consentVersion = doc.formVersion;
+                        this.$.nextbutton.style.visibility="visible";
+                    }
+                }.bind(this));
+            },
+            _doConsent: function() {
+                this.sharedData.results.consent = {
+                    consented: 1,
+                    consentVersion: this.consentVersion
+                };
+
+                this.fire('advance');
+            }
+        })
+    </script>
+</dom-module>

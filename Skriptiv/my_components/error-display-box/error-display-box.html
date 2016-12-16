@@ -1,0 +1,122 @@
+<dom-module id="error-display-box">
+    <template>
+        <style>
+            :host {
+                display: block;
+                position: relative;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 1.2em;
+                transition: height .225s;
+            }
+
+            :host([centered]) {
+                text-align: center;
+            }
+
+            #shade {
+                position: absolute;
+                left: 0;
+                top: 0;
+                height: 0;
+                width: 100%;
+                overflow: hidden;
+                transition: height .225s;
+                background: transparent;
+                margin: 0;
+                padding: 0;
+                text-align: inherit;
+            }
+
+            #content {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                color: #B5453F;
+                margin: 0;
+                padding: 0;
+                text-align: inherit;
+            }
+
+            #content.blink {
+                animation-name: highlight-blink;
+                animation-duration: 2s;
+            }
+
+            @keyframes highlight-blink {
+                0%   {
+                    animation-timing-function: cubic-bezier(0.4, 0.0, 1, 1);
+                    text-shadow: transparent 0px 0px 2px;
+                }
+
+                7%  {
+                    animation-timing-function: cubic-bezier(0.4, 0.0, 0.6, 1);
+                    text-shadow: rgba(255,0,0,.7) 0px 0px 11px;
+                }
+                
+                100% {
+                    text-shadow: transparent 0px 0px 2px;
+                }
+            }
+        </style>
+
+        <div id="shade">
+            <div id="content"></div>
+        </div>
+
+    </template>
+
+    <script>
+        Polymer({
+            is: 'error-display-box',
+            properties: {
+                displayText: {
+                    type: String,
+                    value: "",
+                    notify: true,
+                    observer: '_textChanged'
+                },
+                centered: {
+                    type: Boolean,
+                    value: false,
+                    reflectToAttribute: true,
+                    notify: true
+                }
+            },
+            listeners: {
+                'blink': '_blink'
+            },
+            setText: function(text) {
+                if(this.displayText !== String(text)) {
+                    this.displayText = String(text);
+                } else {
+                    this.fire('blink');
+                }
+            },
+            _textChanged: function(newValue, oldValue) {
+                if(newValue === "") {
+                    this.$.shade.style.height = "0px";
+                    Polymer.dom(this.root).node.host.style.height = "1.2em";
+                } else {
+                    this.$.content.innerHTML = String(newValue);
+                    var height = this.$.content.getBoundingClientRect().height;
+                    if(Polymer.dom(this.root).node.host.getBoundingClientRect().height !== height) {
+                        Polymer.dom(this.root).node.host.style.height = String(height) + "px";
+                    } else {
+                        Polymer.dom(this.root).node.host.style.height = "1.2em";
+                    }
+                    this.$.shade.style.height = String(height) + "px";
+                    this.fire('blink');
+                }
+            },
+            _blink: function() {
+                this.toggleClass('blink', false, this.$.content);
+                setTimeout(function(){
+                    this.toggleClass('blink', true, this.$.content);
+                }.bind(this), 5);
+            }
+        })
+    </script>
+</dom-module>

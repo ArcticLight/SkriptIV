@@ -1,0 +1,26 @@
+<html>
+    <head>
+        <title>Asdf</title>
+        <style>
+            html, body {
+                width: 100%;
+                height: 100%;
+                font-family: 'Roboto', sans-serif;
+                margin: 0;
+                padding: 0;
+            }
+        </style>
+        <script>
+            window.Polymer = {lazyRegister: true, dom: 'shadow'};
+            window.electron = require('electron').remote;
+            window.appExit = window.electron.app.quit;
+            window.appMaximize = window.electron.getCurrentWindow().maximize;
+            window.scienceTasks = window.electron.getGlobal('tasks');
+        </script>
+        <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+        <link rel="import" href="./my_components/appincludes.html">
+    </head>
+    <body>
+        <app-frame title="SkriptIV Survey"></app-frame>
+    </body>
+</html>

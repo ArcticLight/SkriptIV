@@ -1,0 +1,11 @@
+{
+    "bugTitle": "Math-26",
+    "bugLocation": "&lt;Constructor&gt; Fraction(double, double, int)",
+    "bugDescription": "calling <code>new Fraction(-1.0e10, 1.0e-12, 1000);</code> <strong>doesn't</strong> throw a <code>ConvergenceException</code>, which it should throw.",
+    "fileName": "Fraction",
+    "correctResponses": {
+        "A": [193, 221],
+        "B": [183, 214],
+        "C": [160, 186]
+    }
+}

@@ -1,0 +1,73 @@
+<dom-module id="multi-radio-question">
+    <template>
+        <style>
+            :host {
+                display: flex;
+                width: 100%;
+                flex-direction: column;
+                margin-bottom: .5em;
+                margin-top: 1em;
+            }
+
+            #textcontainer {
+                width: 100%;
+                padding-bottom: .5em;
+            }
+
+            #radiocontainer {
+                display: flex;
+                justify-content: center;
+                width: 100%;
+                align-items: baseline;
+            }
+
+            #radiocontainer ::content div {
+                position: relative;
+                top: 2px;
+            }
+        </style>
+
+        <div id="textcontainer">
+            <content select="p"></content>
+        </div>
+
+        <div id="radiocontainer">
+            <content select="[left-label]"></content>
+            <paper-radio-group selected="{{selected}}">
+                <template is="dom-repeat" items="[[menuItems]]">
+                    <paper-radio-button name="[[item]]">[[item]]</paper-radio-button>
+                </template>
+            </paper-radio-group>
+            <content select="[right-label]"></content>
+        </div>
+
+    </template>
+
+    <script>
+        Polymer({
+            is: 'multi-radio-question',
+            properties: {
+                selected: {
+                    type: Number,
+                    value: 0,
+                    notify: true
+                },
+                numItems: {
+                    type: Number,
+                    value: 1,
+                },
+                menuItems: {
+                    type: Array
+                }
+            },
+            ready: function() {
+                if(this.numItems > 0) {
+                    this.menuItems = [];
+                    for(var i = 0; i < this.numItems; i++) {
+                        this.push('menuItems', i+1);
+                    }
+                }
+            }
+        })
+    </script>
+</dom-module>

@@ -1,0 +1,11 @@
+{
+    "bugTitle": "Chart-8",
+    "bugLocation": "&lt;Constructor&gt; Week(Date, TimeZone)",
+    "bugDescription": "Given the following sequence of code, we get a Week that is the 34th week instead of the expected 35th.<br/><br/><code style=\"white-space:pre\">    //This is the setup:\n    GregorianCalendar cal = (GregorianCalendar) Calendar.getInstance(TimeZone.getDefault());\n    cal.set(2007, Calendar.AUGUST, 26, 1, 0, 0);\n    cal.set(Calendar.MILLISECOND, 0);\n    Week w = new Week(cal.getTime(), TimeZone.getTimeZone(\"Europe/Copenhagen\"));\n\n    w.getWeek(); // This result is 34 instead of 35.</code>",
+    "fileName": "Week",
+    "correctResponses": {
+        "A": [194],
+        "B": [183],
+        "C": [175]
+    }
+}

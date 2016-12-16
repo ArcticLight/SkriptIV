@@ -1,0 +1,10 @@
+{
+    "control": {
+        "bugTitle": "Math-59",
+        "config": "C",
+        "flipped": "false"
+    },
+    
+    "configSet": ["A", "A", "B", "B", "C", "C"],
+    "taskList": ["Lang-1", "Chart-5", "Chart-8", "Math-26", "Mockito-18", "Time-15"]
+}

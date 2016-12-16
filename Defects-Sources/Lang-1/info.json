@@ -1,0 +1,11 @@
+{
+    "bugTitle": "Lang-1",
+    "bugLocation": "Number createNumber(String)",
+    "bugDescription": "Calling <code>createNumber(\"80000000\")</code> incorrectly throws <code>NumberFormatException</code> instead of producing a result.",
+    "fileName": "NumberUtils",
+    "correctResponses": {
+        "A": [512,513,514,515,516,517,518,519,520,521],
+        "B": [509,510,511,512,513,514,515,516,517,518,519,520,521,522,523,524],
+        "C": [469,470,471,472,473,474,475,476,477,478]
+    }
+}

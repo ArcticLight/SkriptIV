@@ -1,0 +1,71 @@
+<dom-module id="thank-page">
+    <template>
+        <style>
+            :host {
+                display: flex;
+                position: relative;
+                width: 100%;
+                height: 100%;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+            }
+
+            h3 {
+                display: block;
+            }
+
+            p {
+                max-width:40em;
+                display: block;
+            }
+        </style>
+        <h3>Thank you for all of your hard work!</h3>
+        <p>Your contributions to science are highly appreciated.</p>
+        <br/>
+        <p>Your responses are being submitted...</p>
+        <div id="result"></div>
+    </template>
+    <script>
+        Polymer({
+            is: "thank-page",
+            properties: {
+                sharedData: {
+                    type: Object,
+                    value: {},
+                    notify: true
+                }
+            },
+            listeners: {
+                'activate': 'activatePage'
+            },
+            activatePage: function() {
+                if(!this.sharedData.db) {
+                    this._failFallback("something, somewhere went horribly wrong.");
+                }
+
+                this.sharedData.db.save(this.sharedData.results, function(err, result) {
+                    if(err) {
+                        this._failFallback(err)
+                    } else {
+                        this._success()
+                    }
+                }.bind(this))
+            },
+            _failFallback: function(error) {
+                this.$.result.innerHTML =
+                    "<p>We're sorry, but something went wrong when submitting your response.\n"
+                    +"Please alert the test administrator and have them help you.\n"
+                    +"Don't worry though, your contribution is not lost, because here is your data:</p><textarea "
+                    +"style='width:40em;height:8em'>"
+                    +(JSON.stringify(this.sharedData.results))+"</textarea><p>(The exact nature of the error was: "
+                    +(String(error)) + ")</p>";
+            },
+            _success: function() {
+                this.$.result.innerHTML =
+                    "<p>Your results have been submitted successfully.</p>"
+                    +"<p>You are now free to close the survey application. You're all done! And thanks again.</p>";
+            }
+        })
+    </script>
+</dom-module>

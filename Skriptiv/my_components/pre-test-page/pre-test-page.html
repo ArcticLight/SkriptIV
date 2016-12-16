@@ -1,0 +1,95 @@
+<dom-module id="pre-test-page">
+    <template>
+        <style>
+            :host {
+                display: flex;
+                width: 100%;
+                height: 100%;
+                justify-content: center;
+                align-items: center;
+                flex-direction: column;
+            }
+
+            #container {
+                box-sizing: border-box;
+                padding: 4em 2em 2em 2em;
+                max-width: 60em;
+                height: 100%;
+                overflow: auto;
+            }
+
+            paper-button {
+                @apply(--button-theme);
+            }
+        </style>
+        <div id="container">
+            <h3>Survey complete.</h3>
+            <p>
+                You are about to move on to the testing portion of the study.
+                <strong>Please be sure to thoroughly read through these instrucitons, and that you understand them completely before continuing.</strong>
+                Make sure you scroll down to view all of the instructions. If you have any questions after reading them, you can ask your test administrator.
+            </p>
+            <p>
+                For the testing portion of the study, you will complete seven (7) different debugging and code comprehension tasks.
+                For each task, you will be given a brief description of a real-world bug which has been found in an open-source project.
+                The bug description contains the kind of information you might be able to discover about the bug if you ran the code in a debugger,
+                such as the method which contains the bug, and an example of code which triggers the bug. Please read the descriptions carefully,
+                as they will help you to debug the code.
+            </p>
+            <p>
+                Next, when you are ready, you will be shown two source-code files side-by-side. One of these files contains the bug you are looking for,
+                and the other file is a fixed version of the same code, meaning that its code is <em>correct</em>, and does not contain the bug.
+                Your task is to read through the files, locate the method you were directed to from the bug description, and determine which code
+                has the bug and which has been fixed. Remember that you will only have <strong>five (5)</strong> minutes to complete each task,
+                however the five minute timer does not start until you have finished reading the bug descriptions. A timer and a progress bar
+                will be at the top of the page to show you how much time you have left.
+            </p>
+            <p>
+                Finally, you should make a note of which line number the bug was found on <strong>in the buggy file</strong>. As an example, you
+                may be reading some code and have determined that the buggy file is the one on the left. You should write in the line number of
+                where the bug was found in the <strong>left</strong> file, and <strong>not</strong> the line number of the fixed code on the right.
+                There may be some cases in which there is more than one correct answer, because multiple lines of code are incorrect. If that is the
+                case, you can pick any one of those incorrect lines. When you are done, check the box indicating that this is your final answer, and click
+                "Submit"
+            </p>
+            <p>
+                What makes these tasks special is that the code which you will be reading will be formatted slightly differently as you go along. 
+                You may encounter code which is formatted so that it is almost impossible to read, code which is rather well-formatted,
+                and everything in between. We ask that you try your best to complete each of the tasks as best as you can, even
+                when the code is hard to read.
+            </p>
+            <p>
+                In summary, for each of the seven tasks, you will:
+            </p>
+            <ol>
+                <li>Read the description of a bug</li>
+                <li>Start a five minute timer, and search for the bug before the time is up</li>
+                <li>Record which file the bug was in, and one of the line numbers in the file you found the bug</li>
+                <li>Check the checkbox indicating your final answer has been chosen, and then press the "Submit" button.</li>
+            </ol>
+            <p>When you are ready, click "Next" to begin.</p>
+            <br>
+            <br>
+            <div style="width:100%;display:flex;flex-direction:row-reverse">
+                <paper-button id="button" disabled="true" on-tap="_doAdvance">Next</paper-button>
+            </div>
+        </div>
+    </template>
+    <script>
+        Polymer({
+            is: 'pre-test-page',
+            listeners: {
+                'activate': 'activatePage'
+            },
+            activatePage: function() {
+                window.setTimeout((function() {
+                    this.$.button.disabled = false;
+                    this.$.button.raised = true;
+                }).bind(this), 10000);
+            },
+            _doAdvance: function() {
+                this.fire('advance')
+            }
+        })
+    </script>
+</dom-module>

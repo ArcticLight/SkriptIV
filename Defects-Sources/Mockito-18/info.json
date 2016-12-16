@@ -1,0 +1,11 @@
+{
+    "bugTitle": "Mockito-18",
+    "bugLocation": "Object returnValueFor(Class&lt;?&gt;)",
+    "bugDescription": "Calling<br/><br/><code style=\"white-space:pre\">    ((Iterable) (new ReturnsEmptyValues()).returnValueFor(Iterable.class)).iterator().hasNext</code><br/><br/>results in a <code>NullPointerException</code>",
+    "fileName": "ReturnsEmptyValues",
+    "correctResponses": {
+        "A": [130],
+        "B": [161],
+        "C": [130]
+    }
+}

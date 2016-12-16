@@ -1,0 +1,487 @@
+<dom-module id="test-question">
+    <template>
+        <style>
+            :host {
+                display: flex;
+                position: relative;
+                width: 100%;
+                height: 100%;
+                justify-content: center;
+                align-items: center;
+            }
+
+            paper-button {
+                @apply(--button-theme);
+            }
+
+            paper-button.desc {
+                position: relative;
+                top: 1.2em;
+                height: 2em;
+                color: #4A6F5F;
+                background-color: #F1F8EB; 
+                left: 1em;
+            }
+
+            paper-progress {
+                display: block;
+                width: 100%;
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                --paper-progress-active-color: #39E5C8;
+                --paper-progress-secondary-color: #93F0E1;
+            }
+
+            #header {
+                position: absolute;
+                top: 0;
+                left: 0;
+                height: 2em;
+                width: 100%;
+                line-height: 2em;
+                vertical-align: center;
+                text-align: left;
+                box-sizing: border-box;
+                padding-left: 8px;
+                background: #8BA399;
+            }
+
+            #footer {
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                height: 4em;
+                background-color: #F1F8EB;
+
+                display: flex;
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: space-between;
+                align-items: flex-start;
+                vertical-align: bottom;
+
+                box-sizing: border-box;
+            }
+
+            #footer div {
+                display: inline-block;
+                height: 3.5em;
+                line-height: 3.2em;
+                vertical-align: bottom;
+            }
+
+            h3 {
+                margin: 0;
+                padding: 0;
+            }
+
+            #sizer {
+                position: absolute;
+                top: 2em;
+                left: 0;
+                bottom: 4em;
+                right: 0;
+            }
+
+            #leftEditor {
+                position: absolute;
+                top: 0;
+                left: 0;
+                height: 100%;
+                width: 50%;
+                background: white;
+            }
+
+            #rightEditor {
+                position: absolute;
+                top: 0;
+                left: 50%;
+                height: 100%;
+                width: 50%;
+                background: white;
+            }
+
+            #responseDiv {
+                padding-left: 1em;
+                padding-bottom: .5em;
+                height: 3em;
+            }
+
+            #lineAnswer {
+                display:inline-block;
+                width:5em;
+                margin-left:1em;
+            }
+
+            #timeRemaining {
+                height: 1em;
+                position: absolute;
+                bottom: .4em;
+                right: .4em;
+                line-height: 1em;
+                vertical-align: bottom;
+            }
+
+            #timeRemaining code {
+                font-size: 1.5em;
+            }
+
+            #wholeThing {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+            }
+
+            #sizerShield {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: #8BA399;
+                z-index: 900;
+            }
+
+            #sizerShield[hidden] {
+                display: none;
+            }
+
+            paper-tab {
+                min-width: 100px;
+            }
+
+            #about {
+                z-index: 901;
+            }
+
+            #outOfTimeBox {
+                z-index: 901;
+            }
+        </style>
+        <div id="wholeThing">
+            <iron-ajax id="AJAXInfo" url="[[_getURLForBugInfoObject(bugTitle)]]"
+                on-error="_error" on-response="_activate2" handle-as="json" last-response="{{_bugInfoObject}}"></iron-ajax>
+            <iron-ajax id="AJAXBugged" url="[[_getURLForBuggedSource(bugTitle,_bugInfoObject.fileName,bugConfig)]]"
+                on-error="_error" on-response="_activate3" handle-as="text" last-response="{{_buggedSource}}"></iron-ajax>
+            <iron-ajax id="AJAXFixed" url="[[_getURLForFixedSource(bugTitle,_bugInfoObject.fileName,bugConfig)]]"
+                on-error="_error" on-response="_activate4" handle-as="text" last-response="{{_fixedSource}}"></iron-ajax>
+            <!-- This is a timer set for 300,000 millis, or 5 minutes. -->
+            <accurate-timer id="timer" timer-duration="300000"
+                            percentage-complete="{{_timePercent}}"
+                            time-now="{{_timeNow}}"
+                            is-running="{{_timerRunning}}"
+                            on-timeout="_timeout"></accurate-timer>
+            <div id="header">
+                 <paper-progress id="progress"
+                    value="{{_timeNow}}"
+                    min="0"
+                    max="300000"
+                    step="1"></paper-progress>
+
+                <h3>Bug <span>{{bugNumber}}</span>: <span>{{bugTitle}}</span></h3>
+                
+                <div id="timeRemaining">Time left: <code>{{formatTimeRemaining(_timeNow)}}</code></div>
+            </div>
+            <div id="sizer">
+                <div id="leftEditor"></div>
+                <div id="rightEditor"></div>
+            </div>
+            <div id="footer">
+                <paper-button on-tap="_openDesc" class="desc">Show the description</paper-button>
+                <div>
+                The bug is on the
+                <paper-dropdown-menu style="margin-left:1em;margin-right:.5em;width:8em;" id="sideAnswer"
+                        label="side" vertical-align="bottom" horizontal-align="left" disabled="[[!_timerRunning]]">
+                    <paper-tabs class="dropdown-content" selected="0">
+                        <paper-tab>left</paper-tab>
+                        <paper-tab>right</paper-tab>
+                    </paper-tabs>
+                </paper-dropdown-menu>
+                on line
+                <paper-input style="margin-right: 1em;"
+                    id="lineAnswer" value="0" type="number" label="Line" min="0"
+                    auto-validate allowed-pattern="[0-9]+" disabled="[[!_timerRunning]]">
+                </paper-input>
+                <paper-checkbox style="position:relative;top:-.3em;" disabled="[[!_timerRunning]]" no-ripple checked="{{_checked}}" id="agreebox">Final Answer!</paper-checkbox>
+                <paper-button style="position:relative;right:.7em;top:-1.2em;height:2.3em;margin-left:5em;"
+                              disabled="[[_calcButton(_timerRunning,_checked)]]"
+                              class="next"
+                              on-tap="_completeMission">Submit</paper-button>
+                </div>
+            </div>
+            
+            <div id="sizerShield"
+                    hidden$="[[_timerRunning]]"></div>
+            <paper-dialog id="about"
+                          no-cancel-on-outside-click="true"
+                          opened="{{_showingDialog}}"
+                          on-iron-overlay-closed="_closedDialog">
+                <h2>Bug <span>{{bugNumber}}</span>: <span id="bugTitle"></span></h2>
+                <paper-dialog-scrollable>
+                    This bug is from a file called <code><span>{{_bugInfoObject.fileName}}</span>.java</code><br/>
+                    <br/>
+                    <h3>You should focus your attention on this method:</h3>
+                    <code id="bugLocation"></code><br/>
+                    <br/>
+                    <h3>Here is a brief description of the bug that may help you:</h3>
+                    <div id="bugDescription">
+                    </div>
+                </paper-dialog-scrollable>
+                <div class="buttons">
+                    <paper-button raised class="next" dialog-confirm autofocus>OK</paper-button>
+                </div>
+            </paper-dialog>
+            <paper-dialog id="outOfTimeBox"
+                          no-cancel-on-outside-click="true"
+                          on-iron-overlay-closed="_failMission">
+                <h2>Out of time!</h2>
+                <paper-dialog-scrollable>
+                You are out of time to work on this problem. Press OK to move on to the next one.
+                </paper-dialog-scrollable>
+                <div class="buttons">
+                    <paper-button class="next" dialog-confirm autofocus>OK</paper-button>
+                </div>
+            </paper-dialog>
+        </div>
+    </template>
+    <script src="../../bower_components/ace-builds/src-min-noconflict/ace.js"></script>
+    <script src="../../bower_components/ace-builds/src-min-noconflict/theme-github.js"></script>
+    <script>
+        Polymer({
+            is: "test-question",
+            properties: {
+                bugTitle: {
+                    type: String,
+                    value: "",
+                    notify: true
+                },
+                bugConfig: {
+                    type: String,
+                    value: "",
+                    notify: true
+                },
+                sharedData: {
+                    type: Object,
+                    value: {},
+                    notify: true
+                },
+                flipped: {
+                    type: Boolean,
+                    value: false,
+                    notify: true
+                },
+                bugNumber: {
+                    type: Number,
+                    value: 0,
+                    notify: true
+                }
+            },
+            listeners: {
+                'activate': 'activatePage'
+            },
+            activatePage: function() {
+                this._checked = false; //ensure this property is set.
+                window.setTimeout((function() {
+                    this.$.AJAXInfo.generateRequest();
+                }).bind(this), 500);
+            },
+            _activate2: function() {
+                this.$.AJAXBugged.generateRequest();
+            },
+            _activate3: function() {
+                this.$.AJAXFixed.generateRequest();
+            },
+            _activate4: function() {
+                //need this for later, so we only start the timer once.
+                this._started = false;
+
+                if(this.flipped) {
+                    this.$.leftEditor.textContent = this._fixedSource;
+                    this.$.rightEditor.textContent = this._buggedSource;
+                } else {
+                    this.$.leftEditor.textContent = this._buggedSource;
+                    this.$.rightEditor.textContent = this._fixedSource;
+                }
+
+                this._leftEditor = ace.edit(this.$.leftEditor);
+                this._rightEditor = ace.edit(this.$.rightEditor);
+                this._leftEditor.setTheme("ace/theme/github");
+                this._rightEditor.setTheme("ace/theme/github");
+                this._leftEditor.getSession().setMode("ace/mode/java");
+                this._rightEditor.getSession().setMode("ace/mode/java");
+                this._leftEditor.setReadOnly(true);
+                this._rightEditor.setReadOnly(true);
+                this._leftEditor.setBehavioursEnabled(false);
+                this._rightEditor.setBehavioursEnabled(false);
+                this._leftEditor.setShowPrintMargin(false);
+                this._rightEditor.setShowPrintMargin(false);
+                this._leftEditor.setShowFoldWidgets(false);
+                this._rightEditor.setShowFoldWidgets(false);
+                this._leftEditor.setDisplayIndentGuides(false);
+                this._rightEditor.setDisplayIndentGuides(false);
+                this._leftEditor.setHighlightActiveLine(false);
+                this._rightEditor.setHighlightActiveLine(false);
+
+                var acss;
+                var tm;
+                var gh;
+
+                //Ace-Editor doesn't put its styles in the correct places when using Shadow Dom.
+                //We need to manually move them out of the document's <head> and into our scope.
+                //
+                //We're sharing references to the dom nodes via SharedData but only because I'm
+                //not sure whether Ace-Editor updates the styles correctly after the first time
+                //it has been instantiated. Better to be safe (and use the same ones) than sorry
+                if(!this.sharedData.styles) {
+                    acss = document.querySelector("head").querySelector("#ace_editor\\.css");
+                    tm = document.querySelector("head").querySelector("#ace-tm");
+                    gh = document.querySelector("head").querySelector("#ace-github");
+                    this.sharedData.styles = {
+                        a: acss,
+                        b: tm,
+                        c: gh
+                    }
+                } else {
+                    acss = this.sharedData.styles.a
+                    tm = this.sharedData.styles.b
+                    gh = this.sharedData.styles.c
+                }
+                this.$.sizer.appendChild(acss);
+                this.$.sizer.appendChild(tm);
+                this.$.sizer.appendChild(gh);
+                this.$.bugTitle.textContent = this._bugInfoObject.bugTitle;
+                this.$.bugLocation.innerHTML = this._bugInfoObject.bugLocation;
+                this.$.bugDescription.innerHTML = this._bugInfoObject.bugDescription;
+                this._openDesc();
+            },
+            _openDesc: function() {
+                this.$.about.open();
+            },
+            _closedDialog: function(x) {
+                if(!this._started) {
+                    this.$.timer.start();
+                    console.log("Start timer...");
+                    this._started = true;
+                } else {
+                    console.warn("Not starting the timer!");
+                }
+            },
+            _timeout: function(x) {
+                if(this.$.about.opened) {
+                    this.$.about.close();
+                }
+                this.$.outOfTimeBox.open();
+            },
+            _failMission: function(x) {
+                this._publishResultAndContinue({
+                    task: this._bugInfoObject.bugTitle,
+                    config: {
+                        bugVersion: this.bugConfig,
+                        flipped: this.flipped
+                    },
+                    result: "Timed-Out",
+                    timeRemaining: "0:00",
+                    rawResponse: {
+                        side: "",
+                        line: -1
+                    }
+                });
+            },
+            _completeMission: function(x) {
+                this._publishResultAndContinue({
+                    task: this._bugInfoObject.bugTitle,
+                    config: {
+                        bugVersion: this.bugConfig,
+                        flipped: this.flipped
+                    },
+                    result: this._getResult(),
+                    timeRemaining: this.formatTimeRemaining(this._timeNow),
+                    rawResponse: {
+                        side: this.$.sideAnswer.value,
+                        line: this.$.lineAnswer.value
+                    }
+                })
+            },
+            _getResult: function() {
+                var correctResponses = this._bugInfoObject.correctResponses[this.bugConfig];
+                var responseLR = this.$.sideAnswer.value;
+                var responseLine = this.$.lineAnswer.value;
+
+                console.log(this.flipped, responseLR, ((this.flipped === true || this.flipped === "true") && responseLR == "left"), ((this.flipped === false || this.flipped === "false") && responseLR == "right"))
+
+                //For some incredibly strange reason, this.flipped
+                //is sometimes a string "true"/"false".
+                //
+                //Instead of boolean-value true/false.
+                //
+                //wat.
+                if((this.flipped === true || this.flipped === "true") && responseLR == "left") {
+                    //if it's flipped, the FIXED code is on the LEFT.
+                    return "Incorrect";
+                } else if((this.flipped === false || this.flipped === "false") && responseLR == "right") {
+                    //if it's NOT flipped, the FIXED code is on the RIGHT.
+                    return "Incorrect";
+                }
+
+                //So now we know that the LR response is correct.
+                for(var i = 0; i < correctResponses.length; i++) {
+                    if(correctResponses[i] == responseLine) {
+                        //We have found the line typed in by the user in the
+                        //list of acceptable answers, we know their answer is right.
+                        return "Correct";
+                    }
+                }
+
+                //We couldn't find the user's entered line number in the list
+                //of acceptable answers.
+                return "Incorrect";
+            },
+            _nodecimals: function(x) {
+                return Math.floor(x) == x;
+            },
+            _getURLForBugInfoObject: function(bugTitle, bugConfig) {
+                return(`../Defects-Sources/${bugTitle}/info.json`)
+            },
+            _getURLForBuggedSource: function(bugTitle, fileName, bugConfig) {
+                return(`../Defects-Sources/${bugTitle}/${fileName}-bugged-${bugConfig}.java`)
+            },
+            _getURLForFixedSource: function(bugTitle, fileName, bugConfig) {
+                return(`../Defects-Sources/${bugTitle}/${fileName}-fixed-${bugConfig}.java`)
+            },
+            _error: function(x) {
+                alert("ERROR!!!\n\nSomething has gone very wrong and the test has crashed.\nPlease inform the test operator!");
+                console.log(x);
+            },
+            _calcButton: function(timerRunning, checked) {
+                return !timerRunning || !checked;
+            },
+            formatTimeRemaining: function(timeNow) {
+                var remainingMillis = 300000 - timeNow;
+                var mins = Math.floor(Math.floor(remainingMillis / 1000) / 60);
+                var secs = String(Math.floor(Math.floor(remainingMillis / 1000) % 60));
+                if(secs.length < 2) {
+                    secs = "0" + secs;
+                }
+                return (mins + ":" + secs);
+            },
+            _publishResultAndContinue: function(resultObject) {
+                var s = this.sharedData;
+
+                if(!s.results) {
+                    s.results = {}
+                }
+                if(!s.results.questionResults) {
+                    s.results.questionResults = [];
+                }
+
+                s.results.questionResults.push(resultObject);
+
+                this.fire('advance')
+            }
+        })
+    </script>
+</dom-module>
